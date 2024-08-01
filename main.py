@@ -25,11 +25,11 @@ def main():
         '2': ('Delete folder', folder_controller.delete_folder, view.get_folder_id, view.display_delete_folder),
         '3': ('Move folder', folder_controller.move_folder, view.get_move_details, view.display_move_folder),
         '4': ('List files and subfolders', folder_controller.list_files_and_subfolders, view.get_folder_id, view.display_list_files_and_subfolders),
-        '5': ('Create file',),
-        '6': ('Delete file',),
-        '7': ('Move file',),
-        '8': ('Get file details',),
-        '9': ('Calculate folder size(recursive)',)
+        '5': ('Create file', file_controller.create_file, view.get_file_details, view.display_create_file),
+        '6': ('Delete file', file_controller.delete_file, view.get_file_id, view.display_delete_file),
+        '7': ('Move file', file_controller.move_file, view.get_move_details, view.display_move_file),
+        '8': ('Get file details', file_controller.get_file_details, view.get_file_id, view.display_file_details),
+        '9': ('Calculate folder size', folder_controller.calculate_folder_size, view.get_folder_id, lambda size: print(f"Total size of folder and its subfolders: {size} bytes"))
     }
 
     while True:

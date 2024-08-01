@@ -125,3 +125,12 @@ class FolderController:
         except Exception as e:
             logger.error(f"Error listing files and subfolders: {str(e)}", exc_info=True)
             raise
+
+    def calculate_folder_size(self, folder_id: int) -> int:
+        try:
+            size = self.folder_service.calculate_folder_size(folder_id)
+            logger.info(f"Folder Controller was called to calculate size for folder ID: {folder_id}")
+            return size
+        except Exception as e:
+            logger.error(f"Error calculating folder size: {str(e)}", exc_info=True)
+            raise

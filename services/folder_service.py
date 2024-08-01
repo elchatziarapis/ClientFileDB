@@ -206,3 +206,25 @@ class FolderService:
                 logger.error(f"Error in list_files_and_subfolders: {e}", exc_info=True)
                 print("Something went wrong while listing files and subfolders. Please check the log file for details.")
                 raise
+
+    def calculate_folder_size(self, folder_id: int) -> int:
+        with self.db.get_db_session() as session:
+            try:
+                folder = session.query(Folder).options(joinedload(Folder.files)).filter_by(folder_id=folder_id).first()
+                if not folder:
+                    logger.error(f"Folder not found: Folder ID: {folder_id}")
+                    raise Exception("Folder not found in the database")
+
+                total_size = sum(file.file_size for file in folder.files)
+                
+                # Fetch and iterate over children explicitly
+                children = session.query(Folder).filter_by(folder_parent_id=folder_id).all()
+                for child in children:
+                    total_size += self.calculate_folder_size(child.folder_id)
+                    
+                logger.info(f"Calculated size for folder ID({folder.folder_name}): {folder_id} is {total_size} bytes")
+                return total_size
+            except Exception as e:
+                logger.error(f"Error in calculate_folder_size: {e}", exc_info=True)
+                print("Something went wrong while calculating the folder size. Please check the log file for details.")
+                raise

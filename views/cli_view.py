@@ -48,7 +48,11 @@ class CLIView:
         Args:
             folder (Folder): The created folder object.
         """
-        print(f"Folder created: {folder.folder_name} (ID: {folder.folder_id})")
+        print("\nFolder Created!")
+        print(f"Name: {folder.folder_name}")
+        print(f"ID: {folder.folder_id}")
+        print(f"Parent ID: {folder.folder_parent_id}")
+        print(f"Created Date: {folder.folder_created_date}")
 
     def display_folder_details(self, folder):
         """
@@ -57,7 +61,11 @@ class CLIView:
         Args:
             folder (Folder): The folder object.
         """
-        print(f"Folder details - ID: {folder.folder_id}, Name: {folder.folder_name}, Parent ID: {folder.folder_parent_id}")
+        print("\nFolder Details:")
+        print(f"ID: {folder.folder_id}")
+        print(f"Name: {folder.folder_name}")
+        print(f"Parent ID: {folder.folder_parent_id}")
+        print(f"Created Date: {folder.folder_created_date}")
 
     def display_delete_folder(self, deleted_items: List[Dict]):
         """
@@ -66,11 +74,12 @@ class CLIView:
         Args:
             deleted_items (List[Dict]): A list of dictionaries representing the deleted folders and files.
         """
+        print("\nDeleted Items:")
         for item in deleted_items:
             if item['type'] == 'folder':
-                print(f"Deleted folder ID: {item['id']}, Name: {item['name']}")
+                print(f"Deleted Folder: ID: {item['id']}, Name: {item['name']}")
             elif item['type'] == 'file':
-                print(f"Deleted file ID: {item['id']}, Name: {item['name']}, S3 Key: {item['s3_key']}")
+                print(f"Deleted File: ID: {item['id']}, Name: {item['name']}, S3 Key: {item['s3_key']}")
 
     def display_move_folder(self, folder):
         """
@@ -79,7 +88,10 @@ class CLIView:
         Args:
             folder (Folder): The moved folder object.
         """
-        print(f"Moved folder ID: {folder.folder_id}, Name: {folder.folder_name} to parent ID: {folder.folder_parent_id}")
+        print("\nMoved Folder:")
+        print(f"Name: {folder.folder_name}")
+        print(f"ID: {folder.folder_id}")
+        print(f"New Parent ID: {folder.folder_parent_id}")
 
     def display_create_file(self, file):
         """
@@ -88,7 +100,12 @@ class CLIView:
         Args:
             file (File): The created file object.
         """
-        print(f"File created: {file.file_name} (ID: {file.file_id})")
+        print("\nFile Created!")
+        print(f"Name: {file.file_name}")
+        print(f"ID: {file.file_id}")
+        print(f"Folder ID: {file.folder_id}")
+        print(f"Size: {file.file_size} bytes")
+        print(f"Created Date: {file.file_created_date}")
 
     def get_folder_id(self) -> int:
         """
@@ -97,8 +114,7 @@ class CLIView:
         Returns:
             int: The folder ID.
         """
-        folder_id = int(input("Enter folder ID: "))
-        return folder_id
+        return int(input("Enter folder ID: "))
     
     def get_move_details(self) -> Tuple[int, int]:
         """
@@ -121,11 +137,70 @@ class CLIView:
         """
         indent = "    " * level
 
-        print(f"{indent}--- Files ---")
-        for file in contents['Files']:
-            print(f"{indent}ID: {file['File ID']}, Name: {file['File Name']}, Size: {file['File Size']} bytes")
-        
         print(f"{indent}--- Subfolders ---")
         for subfolder in contents['Subfolders']:
             print(f"{indent}ID: {subfolder['Folder ID']}, Name: {subfolder['Folder Name']}")
             self.display_list_files_and_subfolders(subfolder, level + 1)
+        
+        print(f"{indent}--- Files ---")
+        for file in contents['Files']:
+            print(f"{indent}ID: {file['File ID']}, Name: {file['File Name']}, Size: {file['File Size']} bytes")
+
+    def get_file_id(self) -> int:
+        """
+        Get the file ID from the user.
+
+        Returns:
+            int: The file ID.
+        """
+        return int(input("Enter file ID: "))
+    
+    def get_file_details(self) -> Tuple[str, int, bytes]:
+        """
+        Get the details for creating a new file from the user.
+
+        Returns:
+            Tuple[str, int, bytes]: A tuple containing the file name, folder ID, and file content.
+        """
+        name = input("Enter file name: ")
+        folder_id = int(input("Enter folder ID: "))
+        file_content = input("Enter file content: ").encode('utf-8')
+        return (name, folder_id, file_content)
+    
+    def display_delete_file(self, file):
+        """
+        Display the details of the deleted file.
+
+        Args:
+            file (File): The deleted file object.
+        """
+        print("\nDeleted File:")
+        print(f"Name: {file.file_name}")
+        print(f"ID: {file.file_id}")
+
+    def display_move_file(self, file):
+        """
+        Display the details of the moved file.
+
+        Args:
+            file (File): The moved file object.
+        """
+        print("\nMoved File:")
+        print(f"Name: {file.file_name}")
+        print(f"ID: {file.file_id}")
+        print(f"New Folder ID: {file.folder_id}")
+
+    def display_file_details(self, file):
+        """
+        Display the details of a file.
+
+        Args:
+            file (File): The file object.
+        """
+        print("\nFile Details:")
+        print(f"ID: {file.file_id}")
+        print(f"Name: {file.file_name}")
+        print(f"Size: {file.file_size} bytes")
+        print(f"Created Date: {file.file_created_date}")
+        print(f"S3 Key: {file.file_s3_key}")
+        print(f"Folder ID: {file.folder_id}")
