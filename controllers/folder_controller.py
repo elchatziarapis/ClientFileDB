@@ -127,6 +127,18 @@ class FolderController:
             raise
 
     def calculate_folder_size(self, folder_id: int) -> int:
+        """
+        Calculate the total size of all files within a folder and its subfolders.
+
+        Args:
+            folder_id (int): The ID of the folder for which to calculate the total size.
+
+        Returns:
+            int: The total size of all files within the folder and its subfolders in bytes.
+
+        Raises:
+            Exception: If any error occurs during the size calculation.
+        """
         try:
             size = self.folder_service.calculate_folder_size(folder_id)
             logger.info(f"Folder Controller was called to calculate size for folder ID: {folder_id}")

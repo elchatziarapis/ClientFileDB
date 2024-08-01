@@ -208,6 +208,18 @@ class FolderService:
                 raise
 
     def calculate_folder_size(self, folder_id: int) -> int:
+        """
+        Calculate the total size of all files within a folder and its subfolders.
+
+        Args:
+            folder_id (int): The ID of the folder for which to calculate the total size.
+
+        Returns:
+            int: The total size of all files within the folder and its subfolders in bytes.
+
+        Raises:
+            Exception: If the folder is not found in the database or if any other error occurs during calculation.
+        """
         with self.db.get_db_session() as session:
             try:
                 folder = session.query(Folder).options(joinedload(Folder.files)).filter_by(folder_id=folder_id).first()
