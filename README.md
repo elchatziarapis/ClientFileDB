@@ -45,7 +45,7 @@ This project is a highly optimized file system database with a client applicatio
 ## Tools and Technologies
 
 - **Database**: PostgreSQL
-- **Programming Language**: Python
+- **Programming Language**: Python 3
 - **Version Control**: Git
 - **File Storage**: Amazon S3
 
