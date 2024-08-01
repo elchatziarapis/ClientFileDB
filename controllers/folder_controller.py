@@ -1,8 +1,9 @@
-import logging
 from services.folder_service import FolderService
 from models.folder import Folder
+from typing import Dict
+from logger import Logger
 
-logger = logging.getLogger(__name__)
+logger = Logger.get_logger()
 
 class FolderController:
     """
@@ -102,4 +103,25 @@ class FolderController:
             return folder
         except Exception as e:
             logger.error(f"Error moving folder: {str(e)}", exc_info=True)
+            raise
+
+    def list_files_and_subfolders(self, folder_id: int) -> Dict:
+        """
+        Lists all files and subfolders within a folder.
+
+        Parameters:
+        folder_id (int): The ID of the folder to list contents for.
+
+        Returns:
+        List[Union[File, Folder]]: A list of files and subfolders within the specified folder.
+
+        Raises:
+        Exception: If there is an error listing the files and subfolders.
+        """
+        try:
+            contents = self.folder_service.list_files_and_subfolders(folder_id)
+            logger.info(f"Folder Controller was called to list files and subfolders for folder ID: {folder_id}")
+            return contents
+        except Exception as e:
+            logger.error(f"Error listing files and subfolders: {str(e)}", exc_info=True)
             raise

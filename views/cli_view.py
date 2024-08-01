@@ -110,3 +110,22 @@ class CLIView:
         folder_id = int(input("Enter folder ID: "))
         new_parent_id = int(input("Enter new parent folder ID: "))
         return (folder_id, new_parent_id)
+
+    def display_list_files_and_subfolders(self, contents: Dict, level: int = 0):
+        """
+        Display the list of files and subfolders within a folder recursively.
+
+        Args:
+            contents (Dict): A dictionary containing files and subfolders.
+            level (int): The current level of indentation for nested subfolders. Default is 0.
+        """
+        indent = "    " * level
+
+        print(f"{indent}--- Files ---")
+        for file in contents['Files']:
+            print(f"{indent}ID: {file['File ID']}, Name: {file['File Name']}, Size: {file['File Size']} bytes")
+        
+        print(f"{indent}--- Subfolders ---")
+        for subfolder in contents['Subfolders']:
+            print(f"{indent}ID: {subfolder['Folder ID']}, Name: {subfolder['Folder Name']}")
+            self.display_list_files_and_subfolders(subfolder, level + 1)

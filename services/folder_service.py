@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from models.folder import Folder
 from database import Database
-from logger import Logger
 from utils.s3_utils import S3Utils
-from typing import List
+from logger import Logger
+from typing import List , Dict
 
 
 logger = Logger.get_logger()
@@ -165,3 +165,44 @@ class FolderService:
         logger.info(f"Deleted folder from database: Folder ID: {folder.folder_id}")
         deleted_items.append({'type': 'folder', 'id': folder.folder_id, 'name': folder.folder_name})
 
+    def list_files_and_subfolders(self, folder_id: int) -> Dict:
+        """
+        List all files and subfolders within a specified folder.
+
+        Args:
+            folder_id (int): The ID of the folder to list contents for.
+
+        Returns:
+            Dict: A dictionary containing the folder details, including its files and subfolders.
+
+        Raises:
+            Exception: If the folder is not found or another error occurs.
+        """
+        with self.db.get_db_session() as session:
+            try:
+                folder = session.query(Folder).options(joinedload(Folder.children), joinedload(Folder.files)).filter_by(folder_id=folder_id).first()
+                if not folder:
+                    logger.error(f"Folder not found: Folder ID: {folder_id}")
+                    raise Exception("Folder not found in the database")
+
+                # Recursive function to fetch all subfolders and files
+                def get_subfolders_and_files(folder):
+                    result = {
+                        'Folder ID': folder.folder_id,
+                        'Folder Name': folder.folder_name,
+                        'Files': [{'File ID': file.file_id, 'File Name': file.file_name, 'File Size': file.file_size} for file in folder.files],
+                        'Subfolders': []
+                    }
+
+                    for child in folder.children:
+                        result['Subfolders'].append(get_subfolders_and_files(child))
+
+                    return result
+
+                output = get_subfolders_and_files(folder)
+                logger.info(f"Listed files and subfolders for folder ID: {folder_id}")
+                return output
+            except Exception as e:
+                logger.error(f"Error in list_files_and_subfolders: {e}", exc_info=True)
+                print("Something went wrong while listing files and subfolders. Please check the log file for details.")
+                raise
