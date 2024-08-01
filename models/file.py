@@ -6,9 +6,7 @@ from sqlalchemy import (Column,
                         UniqueConstraint,
                         TIMESTAMP, 
                         func)
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from database import Base
 
 class File(Base):
     """

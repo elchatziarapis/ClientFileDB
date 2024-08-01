@@ -7,14 +7,12 @@ from sqlalchemy import (
     UniqueConstraint, 
     CheckConstraint
 )
-
 from sqlalchemy.orm import (
     relationship, 
-    backref, 
-    declarative_base
+    backref
 )
+from database import Base
 
-Base = declarative_base()
 
 class Folder(Base):
     """
