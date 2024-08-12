@@ -36,8 +36,3 @@ INSERT INTO folders (folder_name, folder_parent_id) VALUES
 -- Insert directories under /sbin
 INSERT INTO folders (folder_name, folder_parent_id) VALUES
 ('ntw', 8);
-
-INSERT INTO files (file_name, file_size, folder_id, file_s3_key) VALUES
-('ls', 1111, 2, 's3_temp_ls'),
-('cp', 5535, 2, 's3_temp_cp'),
-('mv', 2343, 2, 's3_temp_mv');
