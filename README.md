@@ -138,7 +138,8 @@ python main.py
 
 In case we turn this into a web application, there are multiple factors and ideas that can be used to create this magnificent project. I present my idea on how could this be done.
 
-![image](https://github.com/user-attachments/assets/6abeff5b-23de-4bed-80c4-fa5a3d6b4569)
+![System Design](https://github.com/user-attachments/assets/8f5ab778-b913-41d4-892b-80d3ee479a0b)
+
 
 
 # Documentation
