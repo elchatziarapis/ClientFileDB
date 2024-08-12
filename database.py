@@ -58,15 +58,15 @@ class Database:
         KeyError: If required configuration options are missing.
         """
         try:
-            dialect = self.config['database']['dialect']
-            driver = self.config['database'].get('driver', '')
-            host = self.config['database']['host']
-            user = self.config['database']['user']
-            password = self.config['database']['password']
-            dbname = self.config['database']['dbname']
-            driver_part = f"+{driver}" if driver else ""
-            self.DATABASE_URL = f"{dialect}{driver_part}://{user}:{password}@{host}/{dbname}"
-            logger.info(f"Database URL: {dialect}{driver_part}://{user}:********@{host}/{dbname}")
+            db_config = self.config['database']
+            self.DATABASE_URL = (
+                f"{db_config['dialect']}+{db_config['driver']}://"
+                f"{db_config['user']}:{db_config['password']}@"
+                f"{db_config['host']}:{db_config.get('port', '5432')}/"
+                f"{db_config['dbname']}"
+            )
+            self.async_mode = db_config.getboolean('ASYNC_MODE', fallback=False)
+            logger.info("Database URL setup successfully.")
         except KeyError as e:
             logger.error(f"Missing required configuration: {e}")
             raise
@@ -149,4 +149,20 @@ class Database:
             logger.info("Database session closed.")
         except Exception as e:
             logger.error(f"Error closing database session: {e}")
+            raise
+
+    async def get_async_db_session(self):
+        if not self.async_mode:
+            raise RuntimeError("Async mode is not enabled.")
+        session = self.SessionLocal()
+        logger.info("Async database session started.")
+        return session
+
+    async def close_async_db_session(self, session):
+        try:
+            await session.close()
+            await self.SessionLocal.remove()
+            logger.info("Async database session closed.")
+        except Exception as e:
+            logger.error(f"Error closing async database session: {e}")
             raise

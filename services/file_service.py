@@ -1,11 +1,9 @@
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from models.file import File
 from utils.s3_utils import S3Utils
 from database import Database
 from datetime import datetime, timezone
 from logger import Logger
-import os
 
 logger = Logger.get_logger()
 
@@ -49,29 +47,18 @@ class FileService:
                 )
                 session.add(file)
                 session.commit()
-                session.refresh(file)
                 logger.info(f"File record created in the database: {name}, File ID: {file.file_id}")
-            except IntegrityError as e:
-                session.rollback()
-                logger.error(f"Database error occurred: {str(e)}", exc_info=True)
-                raise
+
+                # Upload the file to S3 after committing to avoid rollback issues if upload fails
+                if not S3Utils.upload_file_to_s3(file_content, name, s3_key):
+                    raise Exception(f"Failed to upload file to S3: {name}")
+
+                return file
+
             except Exception as e:
                 session.rollback()
                 logger.error(f"Error in create_file: {e}", exc_info=True)
                 raise
-
-        if not S3Utils.upload_file_to_s3(file_content, name, s3_key):
-            logger.error(f"Failed to upload file to S3: {name}")
-            with self.db.get_db_session() as session:
-                try:
-                    session.delete(file)
-                    session.commit()
-                    logger.info(f"Cleaned up database record for file ID: {file.file_id} after failed S3 upload")
-                except Exception as cleanup_exception:
-                    logger.error(f"Failed to clean up database record for file ID: {file.file_id} after failed S3 upload: {cleanup_exception}", exc_info=True)
-            raise Exception("File upload to S3 failed")
-
-        return file
 
     def get_file(self, file_id: int) -> File:
         """
@@ -97,7 +84,6 @@ class FileService:
                 logger.error(f"Error in get_file: {e}", exc_info=True)
                 raise
 
-
     def delete_file(self, file_id: int) -> File:
         """
         Delete a file by its ID from the database and S3.
@@ -109,8 +95,6 @@ class FileService:
             IntegrityError: If a database integrity error occurs.
             Exception: If any other error occurs during file deletion.
         """
-        file_s3_key = None
-
         with self.db.get_db_session() as session:
             try:
                 file = session.query(File).filter_by(file_id=file_id).first()
@@ -118,33 +102,51 @@ class FileService:
                     logger.error(f"File not found in the database: File ID: {file_id}")
                     raise Exception(f"File not found in the database: File ID: {file_id}")
 
-                file_s3_key = file.file_s3_key
-
-                s3_deletion_success = True
-                if file_s3_key:
-                    s3_deletion_success = S3Utils.delete_file_from_s3(file_s3_key)
-                    if not s3_deletion_success:
-                        logger.warning(f"File not found in S3: {file_s3_key}")
+                # Delete the file from S3 before removing the record from the database
+                if file.file_s3_key and not S3Utils.delete_file_from_s3(file.file_s3_key):
+                    logger.warning(f"File not found in S3: {file.file_s3_key}")
                 
                 session.delete(file)
                 session.commit()
                 logger.info(f"File deleted successfully from database: File ID: {file_id}")
                 return file
-            except IntegrityError as e:
-                session.rollback()
-                logger.error(f"Database error occurred: {str(e)}", exc_info=True)
-                raise
+
             except Exception as e:
                 session.rollback()
                 logger.error(f"Error in delete_file: {e}", exc_info=True)
                 raise
 
+    def move_file(self, file_id: int, new_folder_id: int) -> File:
+        """
+        Move a file to a different folder.
 
-    # TODO
-    def create_file_from_local(self, local_file_path: str, folder_id: int) -> File:
-        pass
+        Args:
+            file_id (int): The ID of the file to be moved.
+            new_folder_id (int): The ID of the new folder where the file will be moved.
 
-    # TODO
-    def download_file(self, file_id: int, local_path: str) -> str:
-        pass
-    
+        Returns:
+            File: The updated File object.
+
+        Raises:
+            Exception: If the file is not found or the move operation fails.
+        """
+        with self.db.get_db_session() as session:
+            try:
+                # Query the file within the active session
+                file = session.query(File).filter_by(file_id=file_id).first()
+                if not file:
+                    logger.error(f"File not found: File ID: {file_id}")
+                    raise Exception(f"File not found: File ID: {file_id}")
+
+                # Perform the move operation within the same session
+                file.folder_id = new_folder_id
+                session.commit()
+                logger.info(f"File moved successfully: File ID: {file_id} to Folder ID: {new_folder_id}")
+
+                # Return the updated file object
+                return file
+
+            except Exception as e:
+                session.rollback()
+                logger.error(f"Error in move_file: {e}", exc_info=True)
+                raise
