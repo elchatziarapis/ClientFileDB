@@ -93,7 +93,7 @@ This project is a highly optimized file system database with a client applicatio
 Run the main application:
 
 ```sh
-python main.py
+python main.py --mode {cli,gui}
 ```
 
 ## Features
